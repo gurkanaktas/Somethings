@@ -1,0 +1,181 @@
+#include "stdafx.h"
+
+const int OyunHizi = 250; // 1000 = 1sn, 250 = 0.35 sn
+
+enum blok{ bos = 0, duvar = 1, yilan = 2, bas = 3 , yem = 4};    //oyundaki blokların veri tipi
+enum direction{asagi = 0, sag = 1, yukari = 2, sol = 3};		 //Yilanın olası 4 yönü
+
+direction Yon = sag;
+blok Kare[24][80] = { };
+
+int KafaY = 14; int KafaX = 45;   //Yilanin kafa koordinat
+int Dongu = 0;				
+
+void Menu();              
+void NewGame();           
+
+void Sil();              //ekranı temizler
+void ArkaBelirle();      //duvarlar belirler
+
+void YilanDef();        //Yilanın default koordinatları belirlenir
+void KafaUpdate();     //Yılanın Koordinatları güncellenir
+void Cikart();          //Ekran çıkartılır
+void GameInit();		//Yilanın yönünü belirlemek ici klavye kontrolü
+void GameLoop();         //Oyunun belirtilen oyunHizi süresince bekletilmesi sağlanıyor
+
+
+void Temas();           //yılanın çarpışma durumunu kontrol eder
+bool Run = true;        //oyunun çalışır durumda olması
+
+DWORD basla = GetTickCount();   // zaman tutmak için lazım
+
+int main() {
+
+	basadon:
+	Menu();
+	NewGame();
+
+	return 0;
+}
+	
+void NewGame() {		
+
+  YilanDef();
+	ArkaBelirle();
+
+	while( Run ) {
+		 
+			GameInit();
+			KafaUpdate();
+			Temas();
+			if (Run == false) {
+				break;
+			}
+			Cikart();
+			GameLoop();
+			Sil();	
+	}
+}
+	// Menu ekranı bir numarası yok
+  void Menu() {
+	
+	cout << "********************************************************************************";
+	cout << "********************************************************************************";
+	cout << "********************************************************************************";
+	cout << "*****************************OYUNUMA HOSGELDINIZ********************************";
+	cout << "********************************************************************************";
+	cout << "********************************************************************************";
+	cout << "********************************************************************************";
+	cout << "********************************************************************************";
+	_getch();
+}
+	
+  void GameLoop() {
+	Dongu = Dongu + 1;
+
+	while (1) {
+
+		if ((GetTickCount() - basla) > OyunHizi) {
+
+				basla = GetTickCount();				break;
+		}
+	}
+}
+
+void Sil() {
+
+	system("cls");
+}
+
+void ArkaBelirle() {
+
+	for (int i = 0; i < 24; i++) {
+		for (int j = 0; j < 80; j++) {
+			if (i >= 0 && i < 3) {
+				Kare[i][j] = duvar;
+			}
+			else if (i > 21 && i <= 24) {
+				Kare[i][j] = duvar;
+			}
+			else if (j >= 0 && j < 20 ) {
+				Kare[i][j] = duvar;
+			}
+			else if (j > 60  && j <= 79 ) {
+				Kare[i][j] = duvar;
+			}		
+		}
+	}
+}
+
+void Cikart() {
+
+		for (int i = 0; i < 24; i++) {
+			for (int j = 0; j < 80; j++) {
+
+				if (Kare[i][j] == bos) {
+					cout << "-";
+				}
+				else if (Kare[i][j] == duvar) {
+					cout << "#";
+				}
+				else if (Kare[i][j] == yilan) {
+					cout << "0";
+				}
+				else if (Kare[i][j] == bas) {
+					cout << "@";
+				}
+				else cout << ".";
+			}
+		}
+}
+
+void YilanDef() {
+	Kare[KafaY][KafaX] = bas;
+}
+
+void KafaUpdate() {
+
+	int TempX = KafaX ;
+	int TempY = KafaY ;
+
+	if (Yon == yukari) {
+		TempY--;
+	}
+	else if (Yon == asagi) {
+		TempY++;
+	}
+	else if (Yon == sag) {
+		TempX++;
+	}
+	else if (Yon == sol) {
+		TempX--;
+	}
+	Kare[KafaY][KafaX] = bos;
+	Kare[TempY][TempX] = bas; 
+	KafaY = TempY; KafaX = TempX;
+}
+
+void GameInit() {
+
+	if (GetAsyncKeyState(VK_RIGHT) && Yon !=sol) {
+		Yon = sag;
+	} 
+	else if (GetAsyncKeyState(VK_LEFT) && Yon != sag) {
+		Yon = sol;
+	}
+	else if (GetAsyncKeyState(VK_UP) && Yon != asagi) {
+		Yon = yukari;
+	}
+	else if (GetAsyncKeyState(VK_DOWN) && Yon != yukari) {
+		Yon = asagi;
+	}
+}
+
+void Temas() {
+	 
+	if (KafaX == 19 || KafaX == 61 || KafaY == 2 || KafaY == 22  || Kare[KafaY][KafaX] == yilan) {
+
+		Run = false;
+	}
+}
+
